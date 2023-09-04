@@ -1,26 +1,34 @@
 <?php
-    $conexion = mysqli_connect('localhost', 'root', '', 'practica');
+require 'vendor/autoload.php';
 
-    // Check if the connection was successful
-    if (!$conexion) {
-        die("Connection failed: " . mysqli_connect_error());
-    }
+use Google\Cloud\Firestore\FirestoreClient;
 
-    // Retrieve data from the form
-    $nombre = $_POST["nombre"];
-    $apellidos = $_POST["apellidos"];
-    $fecha = $_POST["fecha"];
+// Configura Firestore con tu archivo de credenciales
+$firestore = new FirestoreClient([
+    'keyFilePath' => 'Z:/Xampp/htdocs/prueba_php',
+]);
 
-    // Prepare the SQL statement
-    $insertarSQL = "INSERT INTO usuario(nombre, apellidos, fecha) VALUES ('$nombre', '$apellidos', '$fecha')";
+// Datos que deseas agregar a Firestore
+$nombre = $_POST["nombre"];
+$apellidos = $_POST["apellidos"];
+$fecha = $_POST["fecha"];
 
-    // Execute the SQL statement
-    if(mysqli_query($conexion, $insertarSQL)){
-        echo "<script>alert('Se ha enviado los datos'); window.location='index.html'</script>";
-    } else {
-        echo "Error: " . $insertarSQL . "<br>" . mysqli_error($conexion);
-    }
+// Define la colección y un ID único para el documento (Firestore genera automáticamente IDs únicos)
+$collection = $firestore->collection('usuarios');
 
-    // Close the database connection
-    mysqli_close($conexion);
+// Datos que deseas agregar como campos en el documento
+$documentData = [
+    'nombre' => $nombre,
+    'apellidos' => $apellidos,
+    'fecha' => $fecha,
+];
+
+// Agrega un nuevo documento a la colección
+$newDocument = $collection->add($documentData);
+
+if ($newDocument->id()) {
+    echo "<script>alert('Se ha enviado los datos'); window.location='index.html'</script>";
+} else {
+    echo "Error al enviar los datos a Firestore.";
+}
 ?>
